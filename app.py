@@ -7,7 +7,7 @@ from html import escape
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
-openai.api_key = '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'
+openai.api_key = 'sk-xxxx'
 
 users = {}
 conversations = {}
