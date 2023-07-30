@@ -26,5 +26,5 @@ Feel free to modify or extend the code according to your needs.
 
 
 
-pkill -f gunicorn
-nohup gunicorn -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker -w 1 -b 0.0.0.0:8000 app:app &
+* pkill -f gunicorn
+* nohup gunicorn -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker -w 1 -b 0.0.0.0:8000 app:app &
