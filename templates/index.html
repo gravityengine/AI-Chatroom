@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>AI Chatroom</title>
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+
+  <style>
+    .chat-messages {
+      height: calc(100vh - 160px);
+      overflow-y: auto;
+      padding-bottom: 20px;
+    }
+    .send-button{
+      width:25%;
+    }
+    @media(max-width:767px){
+      .online-users__headline{
+        display: none;
+      }
+      .send-button{
+        width:90%;
+      }
+    }
+
+    /* 添加新的样式类 */
+    .chat-message {
+      margin-bottom: 10px;
+    }
+    .user {
+      font-weight: bold;
+      margin-right: 5px;
+    }
+    .message-code {
+      background-color: #f0f0f0;
+      border-radius: 3px;
+      padding: 5px;
+      white-space: pre-wrap;
+    }
+
+    /* 添加针对不同消息类型的样式类 */
+    .system-msg {
+      color: red;
+    }
+    .chatgpt-msg {
+      color: green;
+    }
+  </style>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body class="d-flex flex-column h-100">
+  <header class="bg-light py-2 px-5 text-center">
+    <h2>AI Chatroom</h2>
+  </header>
+
+  <main role='main' class="flex-shrink-0 mt-3 d-flex justify-content-around">
+  <div id="users-desktop" class="col-md-2 border-right pt-4 pr-4 desktop-users d-none d-md-block"> <!-- 添加新的样式类 -->
+    <h2 class="online-users__headline">Online Users</h2>
+  </div>
+
+  <div class="container col-12 col-md-10 p-0"> <!-- 修改此处的布局类 -->
+    <div class="card border-0 rounded-0">
+      <div id="messages" class="card-body chat-messages"></div>
+        <div class="card-footer bg-transparent border top p-3">
+          <div class="row g-3 align-items-center">
+            <div class="col-lg-8 mb-2"> <!--Change this line-->
+              <textarea id="input" class="form-control" rows="3" placeholder="Type a message...">@ChatGPT </textarea>
+            </div>
+
+            <div class="col-lg-2 mt-2 mb-2"> <!-- Add this block and change the column size -->
+              <label for="modelSelection">AI Model:</label> 
+              <select name="models" id="modelSelection" class="form-select"> <!-- add bootstrap class to make it look better -->
+                <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+                <option value="gpt-3.5-turbo-16k">gpt-3.5-turbo-16k</option>
+                <option value="gpt-4">gpt-4</option>
+                <option value="DALL-E">DALL-E</option>
+              </select>
+            </div>
+
+            <div class="col-lg-2 mb-2"> <!--Change this line-->
+              <button id="send" class="btn btn-primary send-button w-100">
+                Send
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div> 
+  </main>
+
+  <nav aria-label="breadcrumb m-0 fixed-bottom shadow-lg ">
+    <ol id="users-mobile" class="breadcrumb m-0 online-indicator">
+      <!-- Online users will be append here for mobile view -->
+    </ol>
+  </nav>
+  <script>
+    var socket = io.connect('https://room.chatgpt.org.uk');
+    socket.on('connect', function() {
+      console.log('Connected');
+    });
+
+    var msgs = {}
+    socket.on('updateMessage', function(updateData) {
+      if(msgs.hasOwnProperty(updateData.id)){
+        msgs[updateData.id].html(updateData.newText); // 使用 .html() 方法设置消息内容，以保留 HTML 结构
+      }
+    });
+
+    socket.on('message', function(msg) {
+      var newMessageElement = $('<div></div>'); // 使用 <div> 标签代替 <p> 标签，以便应用样式
+      var userElement = $('<span class="user"></span>').text(msg.user + ': ');
+
+      if (msg.user === 'admin') {
+        newMessageElement.addClass('chat-message system-msg');
+      } else if (msg.user === 'ChatGPT') {
+        newMessageElement.addClass('chat-message chatgpt-msg');
+      } else {
+        newMessageElement.addClass('chat-message');
+      }
+
+      var codeElement;
+      if (msg.text.startsWith('```') && msg.text.endsWith('```')) {
+        var codeContent = msg.text.slice(3, -3);
+        codeElement = $('<pre><code class="message-code"></code></pre>').text(codeContent);
+      } else {
+        codeElement = $('<code class="message-code"></code>').html(msg.text); // 使用 <code> 标签包裹消息内容以呈现为代码
+      }
+
+      newMessageElement.append(userElement);
+      newMessageElement.append(codeElement);
+
+      if (msg.id) {
+        msgs[msg.id] = newMessageElement;
+      }
+
+      $('#messages').append(newMessageElement);
+      $('#messages').scrollTop($('#messages')[0].scrollHeight);
+    });
+
+    socket.on('onlineUsers', function(users) {
+      $('#users-mobile').empty();
+      $('#users-desktop').empty();
+
+      for (var id in users) {
+        $('#users-mobile').append('<a class="nav-link">' + users[id] + '</a>');
+        $('#users-desktop').append('<p>' + users[id] + '</p>');
+      }
+    });
+
+    $('#send').click(function() {
+      var model = $('#modelSelection').val();
+      
+      socket.emit('sendMessage', { 
+        'message': $('#input').val(),
+        'model': model                   //New line, pass the selected model with the message.
+      });
+      
+      $('#input').val('@ChatGPT ');
+    });
+
+</script>
+
+<!-- Including Bootstrap scripts -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+crossorigin="anonymous"></script>
+
+</body>
+</html>
+
