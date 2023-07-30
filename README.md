@@ -10,7 +10,7 @@ This is an open project of a chat room utilising models from [OpenAI](https://op
 * Updating list of online users
 * `DALL-E` Image Generation as an optional feature
 
-<img src="chat_room_demo.jpg" alt="Chatroom Interface">
+
 
 ## Tech Stack
 
@@ -20,48 +20,6 @@ This is an open project of a chat room utilising models from [OpenAI](https://op
 * [OpenAI API](https://beta.openai.com/docs/introduction/library-reference/chapter-openai-api/reference/#python-library-v030) - To make requests to OpenAI models
 
 Feel free to modify or extend the code according to your needs.
-
-## Deployment
-
-### Environment Dependencies:
-- Python 3.7 or higher needed to run the app ([Python Installation Guide](https://realpython.com/installing-python/))
-- Flask (Install via ```pip install flask``` )
-- python-socketio ( Install via ```pip install python-socketio``` ) 
-- openai Library(Install via ```pip install openai``` )
-
-### Steps: 
-
-1. Clone this GitHub Repository into a local directory on your machine :
-    ```
-    git clone https://github.com/YOUR_GITHUB_USERNAME/AI-chat-room.git
-    ```
-   Replace 'YOUR_GITHUB_USERNAME' accordingly
-
-2. Change the current directory in terminal/command prompt to that folder:
-
-    ```
-    cd AI_ChatRoom   
-    ```
-
-3. Set up your OpenAI secure key:
-
-    ```
-    export OPENAI_KEY='YOUR_OPENAI_KEY'
-    ```
-    Replace 'YOUR_OPENAI_KEY' with your actual secure key obtained from OpenAI
-   
-4. Now, launch the flask app :
-
-    ```
-    python app.py  
-    ```
-
-5. The application should now be running! Visit ```localhost:5000``` via a browser.
-
-Please double-check if you have correctly set up the environment variable OPENAI_KEY along with verifying all the dependencies are installed successfully. Minor negligence such as overlooking messages containing crucial information might prevent successful deployment.
-
-Once the site is up and running smoothly, feel free to host it somewhere to contribute towards the learning and development of AI.
-
 
 
 
