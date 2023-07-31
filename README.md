@@ -1,4 +1,5 @@
 # AI Chatroom
+https://room.chatgpt.org.uk/
 
 This is an open project of a chat room utilising models from [OpenAI](https://openai.com/) to generate replies. You get to choose your preferred model and ask the AI questions during conversations.
 
