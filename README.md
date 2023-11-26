@@ -26,6 +26,3 @@ Feel free to modify or extend the code according to your needs.
 匿名在线聊天室，可通过@ChatGPT获取回复，支持自选模型：gpt-3.5-turbo, gpt-3.5-turbo-16k, gpt-4及DALL-E。
 
 
-
-* pkill -f gunicorn
-* nohup gunicorn -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker -w 1 -b 0.0.0.0:8000 app:app &
