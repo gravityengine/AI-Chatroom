@@ -17,7 +17,7 @@ app.config['SESSION_TYPE'] = 'filesystem'
 socketio = SocketIO(app, cors_allowed_origins="*")
 client = OpenAI(
     base_url="https://oneapi.gravityengine.cc/v1",
-    api_key="sk-xxx"
+    api_key="sk-xx"
 )
 
 
@@ -65,13 +65,13 @@ def connect():
     users[user_id] = username
     username_changes[user_id] = []
 
-    # 如果没有提供用户名，则生成一个新的用户名
-    if not username:
+    # 如果没有提供用户名或者用户名不合法，则生成一个新的用户名
+    if not username or not re.match(r'^[a-zA-Z\u4e00-\u9fa5]{1,20}$', username) or username.lower() in ['admin', 'chatgpt', 'undefined', 'administrator']:
         username = random.choice(adjectives) + random.choice(animals)
 
     # 检查用户名是否符合要求
-    if not re.match(r'^[\w\u4e00-\u9fa5]{1,20}$', username) or username.lower() in ['admin', 'chatgpt']:
-        emit('message', {'user': 'admin', 'text': 'Username is invalid. It should only contain English letters, numbers, Chinese characters, should not exceed 20 characters, and should not be "admin" or "ChatGPT".'}, room=request.sid)
+    if not re.match(r'^[a-zA-Z\u4e00-\u9fa5]{1,20}$', username) or username.lower() in ['admin', 'chatgpt', 'undefined', 'administrator']:
+        emit('message', {'user': 'admin', 'text': 'Username is invalid. It should only contain English letters, Chinese characters, should not exceed 20 characters, and should not be "admin" or "ChatGPT".'}, room=request.sid)
         return
     
     users[request.sid] = username
