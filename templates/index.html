@@ -346,11 +346,11 @@ $('body').on('click', '#edit-username', function() {
   var newUsername = prompt('Enter your new username:');
   if (newUsername) {
     // 检查新用户名是否符合要求
-    var re = /^[\w\u4e00-\u9fa5]{1,20}$/;
-    if (!re.test(newUsername) || ['admin', 'chatgpt'].includes(newUsername.toLowerCase())) {
-      alert('Username is invalid. It should only contain English letters, numbers, Chinese characters, should not exceed 20 characters, and should not be reserved words.');
-      return;
-    }
+    var re = /^[a-zA-Z\u4e00-\u9fa5]{1,20}$/;
+if (!re.test(newUsername) || ['admin', 'chatgpt', 'undefined', 'administrator'].includes(newUsername.toLowerCase())) {
+    alert('Username is invalid. It should only contain English letters, Chinese characters, should not exceed 20 characters, and should not be reserved words.');
+    return;
+}
     socket.emit('changeUsername', newUsername);
     // 更新本地变量和localStorage
     socket.username = newUsername;
