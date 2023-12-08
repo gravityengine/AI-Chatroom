@@ -7,7 +7,22 @@
   <title>AI Chatroom</title>
 
   <!-- Bootstrap CSS -->
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Optional JavaScript -->
+  <!-- Highlight.js样式表（您可以选择不同的主题） -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/default.min.css">
+
+  <!-- Highlight.js库 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- KaTeX CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.css" crossorigin="anonymous">
+
+<!-- KaTeX JS -->
+<script src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.js" crossorigin="anonymous"></script>
 
   <style>
     .chat-messages {
@@ -16,18 +31,8 @@
       padding-bottom: 20px;
     }
     .send-button{
-      width:25%;
+      width:100%;
     }
-    @media(max-width:767px){
-      .online-users__headline{
-        display: none;
-      }
-      .send-button{
-        width:90%;
-      }
-    }
-
-    /* 添加新的样式类 */
     .chat-message {
       margin-bottom: 10px;
     }
@@ -36,54 +41,118 @@
       margin-right: 5px;
     }
     .message-code {
-      background-color: #f0f0f0;
-      border-radius: 3px;
-      padding: 5px;
-      white-space: pre-wrap;
-    }
-
-    /* 添加针对不同消息类型的样式类 */
+  background-color: transparent;
+  border-radius: 3px;
+  padding: 5px;
+  white-space: pre-wrap;
+}
     .system-msg {
       color: red;
     }
     .chatgpt-msg {
       color: green;
     }
+    table {
+  border-collapse: collapse;
+}
+
+th, td {
+  border: 1px solid black;
+}
+    #username-display {
+  font-size: 1em;
+}
+#edit-username {
+  cursor: pointer;
+  color: #007bff; /* 蓝色 */
+  margin-left: 5px;
+  font-size: 0.9em;
+}
+
+#edit-username:hover {
+  color: #0056b3; /* 深蓝色 */
+}
+
+#clear-history-icon {
+  font-size: 1.5em; /* 调整图标大小 */
+  color: #dc3545; /* 设置图标颜色 */
+  cursor: pointer; /* 将光标变为手形 */
+  margin-left: 10px; /* 增加左边距 */
+  transition: color 0.3s; /* 平滑颜色过渡效果 */
+  transform: rotate(180deg); /* 旋转图标使其朝下 */
+}
+
+#clear-history-icon:hover {
+  color: #a71d2a; /* 鼠标悬浮时的颜色变化 */
+}
+
+#online-users-header {
+    font-family: 'Arial', sans-serif; /* change the font family */
+    font-size: 1.5em; /* adjust the font size */
+    color: #4a4a4a; /* adjust the font color to a dark gray */
+    font-weight: bold; /* adjust the font weight */
+    text-shadow: 1px 1px 2px #aaa; /* add a light shadow to the text */
+  }
+  #online-users-header-mobile {
+    font-family: 'Arial', sans-serif; /* change the font family */
+    font-size: 1.5em; /* adjust the font size */
+    color: #4a4a4a; /* adjust the font color to a dark gray */
+    font-weight: bold; /* adjust the font weight */
+    text-shadow: 1px 1px 2px #aaa; /* add a light shadow to the text */
+  }
   </style>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
-<body class="d-flex flex-column h-100">
+<body class="d-flex flex-column h-100" onload="loadChatHistory();">
   <header class="bg-light py-2 px-5 text-center">
-    <h2>AI Chatroom</h2>
-  </header>
+  <h2>AI Chatroom</h2>
+  <marquee>Welcome to AI Chatroom, it is totally free. My website: <a href="https://www.chatgpt.org.uk/" target="_blank">https://www.chatgpt.org.uk/</a></marquee>
+  <!-- 使用Font Awesome图标 -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+<h3 id="username-display">Your username: <i class="fas fa-pencil-alt" id="edit-username"></i></h3>
+
+</header>
 
   <main role='main' class="flex-shrink-0 mt-3 d-flex justify-content-around">
-  <div id="users-desktop" class="col-md-2 border-right pt-4 pr-4 desktop-users d-none d-md-block"> <!-- 添加新的样式类 -->
-    <h2 class="online-users__headline">Online Users</h2>
-  </div>
+  <div class="col-md-2 border-right pt-4 pr-4 desktop-users d-none d-md-block">
+  <h3 id="online-users-header">Online Users</h3>
+  <div id="users-desktop"></div>
+</div>
 
-  <div class="container col-12 col-md-10 p-0"> <!-- 修改此处的布局类 -->
+  <div class="container col-12 col-md-10 p-0">
     <div class="card border-0 rounded-0">
       <div id="messages" class="card-body chat-messages"></div>
         <div class="card-footer bg-transparent border top p-3">
           <div class="row g-3 align-items-center">
-            <div class="col-lg-8 mb-2"> <!--Change this line-->
-              <textarea id="input" class="form-control" rows="3" placeholder="Type a message...">@ChatGPT </textarea>
-            </div>
-
-            <div class="col-lg-2 mt-2 mb-2"> <!-- Add this block and change the column size -->
+            <div class="col-lg-7 mb-2">
+    <textarea id="input" class="form-control" rows="3" placeholder="Type a message..."></textarea>
+  </div>
+  <!-- 添加勾选框 -->
+  <div class="col-lg-1">
+    <input type="checkbox" id="chatgpt-checkbox" checked>
+    <label for="chatgpt-checkbox">@ChatGPT</label>
+  </div>
+            <div class="col-lg-3 mt-2 mb-2">
               <label for="modelSelection">AI Model:</label> 
-              <select name="models" id="modelSelection" class="form-select"> <!-- add bootstrap class to make it look better -->
+              <select name="models" id="modelSelection" class="form-select">
                 <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
                 <option value="gpt-3.5-turbo-16k">gpt-3.5-turbo-16k</option>
                 <option value="gpt-4">gpt-4</option>
-                <option value="DALL-E">DALL-E</option>
+                <option value="claude-instant-1.2">claude-instant-1.2</option>
+                <option value="claude-2.0">claude-2.0</option>
+                <option value="claude-2.1">claude-2.1</option>
+                <option value="dall-e-2">dall-e-2</option>
+                <option value="dall-e-3">dall-e-3</option>
               </select>
             </div>
+            <div class="col-lg-1 mb-2">
+      <i class="fas fa-brush" id="clear-history-icon" title="Clear Chat History"></i>
+    </div>
 
-            <div class="col-lg-2 mb-2"> <!--Change this line-->
+            <div class="col-lg-2 mb-2">
               <button id="send" class="btn btn-primary send-button w-100">
                 Send
               </button>
@@ -95,53 +164,154 @@
   </main>
 
   <nav aria-label="breadcrumb m-0 fixed-bottom shadow-lg ">
-    <ol id="users-mobile" class="breadcrumb m-0 online-indicator">
-      <!-- Online users will be append here for mobile view -->
-    </ol>
-  </nav>
+  <h3 id="online-users-header-mobile" class="d-md-none">Online Users</h3>
+  <ol id="users-mobile" class="breadcrumb m-0 online-indicator">
+    <!-- Online users will be append here for mobile view -->
+  </ol>
+</nav>
+
   <script>
-    var socket = io.connect('https://room.chatgpt.org.uk');
+ function renderMathInMarkdown(text) {
+  // 使用正则表达式查找所有数学公式
+  const mathRegex = /\$\$([\s\S]+?)\$\$|\$([^\$\\]*(?:\\.[^\$\\]*)*)\$/g;
+  return text.replace(mathRegex, (match, displayMath, inlineMath) => {
+    const math = displayMath || inlineMath;
+    const isDisplayMode = !!displayMath;
+    try {
+      // 使用 KaTeX 渲染数学公式
+      return katex.renderToString(math, { displayMode: isDisplayMode });
+    } catch (e) {
+      console.error("KaTeX rendering error:", e);
+      return match;
+    }
+  });
+}
+    var md = window.markdownit({
+  highlight: function (str, lang) {
+    if (lang && hljs.getLanguage(lang)) {
+      try {
+        // 使用highlight.js进行代码高亮
+        return '<pre class="hljs"><code>' +
+               hljs.highlight(str, { language: lang, ignoreIllegals: true }).value +
+               '</code></pre>';
+      } catch (__) {}
+    }
+
+    // 如果没有指定语言或语言不受支持，则返回不带高亮的代码
+    return '<pre class="hljs"><code>' + md.utils.escapeHtml(str) + '</code></pre>';
+  },
+  html: true,
+  xhtmlOut: false,
+  breaks: true,
+  langPrefix: 'language-',
+  linkify: true,
+  typographer: true,
+  quotes: '“”‘’'
+}).enable(['table']);
+    // 将 loadChatHistory 函数定义为全局函数
+    function loadChatHistory() {
+      var messageHistory = localStorage.getItem('messageHistory');
+      if (messageHistory) {
+        $('#messages').html(messageHistory);
+      }
+    }
+    
+    document.addEventListener("DOMContentLoaded", function() {
+    // 初始化用户名为空
+    var username = '';
+
+    // 在加载时尝试从localStorage获取用户名
+    if (localStorage.getItem('username')) {
+      username = localStorage.getItem('username');
+    }
+
+    var socket = io.connect('https://room.chatgpt.org.uk', {query: "username=" + username});
+
+    window.onbeforeunload = function() {
+      // 将用户名保存到localStorage中
+      localStorage.setItem('username', socket.username);
+      
+      // 将消息历史保存到localStorage
+      localStorage.setItem('messageHistory', $('#messages').html());
+    };
+    
     socket.on('connect', function() {
       console.log('Connected');
+      $('#username-display').text('Your username: ' + socket.username);
     });
-
+    
     var msgs = {}
-    socket.on('updateMessage', function(updateData) {
-      if(msgs.hasOwnProperty(updateData.id)){
-        msgs[updateData.id].html(updateData.newText); // 使用 .html() 方法设置消息内容，以保留 HTML 结构
-      }
-    });
 
-    socket.on('message', function(msg) {
-      var newMessageElement = $('<div></div>'); // 使用 <div> 标签代替 <p> 标签，以便应用样式
-      var userElement = $('<span class="user"></span>').text(msg.user + ': ');
+    socket.on('username', function(username) {
+  socket.username = username;
+  $('#username-display').html('Your username: ' + username + ' <i class="fas fa-pencil-alt" id="edit-username"></i>');
+});
 
-      if (msg.user === 'admin') {
-        newMessageElement.addClass('chat-message system-msg');
-      } else if (msg.user === 'ChatGPT') {
-        newMessageElement.addClass('chat-message chatgpt-msg');
-      } else {
-        newMessageElement.addClass('chat-message');
-      }
+async function fetchBeijingTime() {
+  try {
+    const response = await fetch('https://worldtimeapi.org/api/timezone/Asia/Shanghai');
+    const data = await response.json();
+    // 直接使用datetime字段，它已经是北京时间
+    return data.datetime.split('.')[0].replace('T', ' '); // 去掉秒后的小数部分，并将T替换为空格
+  } catch (error) {
+    console.error('Error fetching Beijing time:', error);
+    return null;
+  }
+}
 
-      var codeElement;
-      if (msg.text.startsWith('```') && msg.text.endsWith('```')) {
-        var codeContent = msg.text.slice(3, -3);
-        codeElement = $('<pre><code class="message-code"></code></pre>').text(codeContent);
-      } else {
-        codeElement = $('<code class="message-code"></code>').html(msg.text); // 使用 <code> 标签包裹消息内容以呈现为代码
-      }
+socket.on('message', async function(msg) {
+    // 获取北京时间
+    const beijingTimeString = await fetchBeijingTime();
+    const timestamp = beijingTimeString || new Date().toLocaleString("zh-CN", { hour12: false }); // 如果API失败，使用本地时间
 
-      newMessageElement.append(userElement);
-      newMessageElement.append(codeElement);
+    var newMessageElement = $('<div></div>').addClass('chat-message');
 
-      if (msg.id) {
-        msgs[msg.id] = newMessageElement;
-      }
+    if (msg.id) {
+        newMessageElement.attr('id', msg.id);
+    }
 
-      $('#messages').append(newMessageElement);
-      $('#messages').scrollTop($('#messages')[0].scrollHeight);
-    });
+    var messageContent;
+    if (msg.user === 'admin') {
+        newMessageElement.addClass('system-msg');
+        messageContent = msg.text;
+    } else {
+        newMessageElement.addClass(msg.user === 'ChatGPT' ? 'chatgpt-msg' : '');
+        if (msg.user !== 'ChatGPT') {
+            messageContent = '<span class="user">' + msg.user + ' (' + timestamp + '): </span><br>' + msg.text;
+        } else {
+            messageContent = msg.text;
+        }
+    }
+
+    var renderedContent = md.render(renderMathInMarkdown(messageContent));
+    var contentElement = $('<div class="message-content"></div>').html(renderedContent);
+
+    newMessageElement.append(contentElement);
+
+    $('#messages').append(newMessageElement);
+    $('#messages').scrollTop($('#messages')[0].scrollHeight);
+});
+
+// 更新消息的事件监听器
+socket.on('updateMessage', function(updateData) {
+    // 找到具有相应id的消息元素
+    var messageToUpdate = $('#' + updateData.id);
+    
+    if (messageToUpdate.length > 0) {
+        
+        // 假设 updateData.newText 包含从服务器接收到的 Markdown 文本
+var markdownText = updateData.newText;
+
+// 将 <br> 标签替换为换行符 \n
+markdownText = markdownText.replace(/<br>/g, '\n');
+
+// 使用更新后的文本进行 Markdown 渲染
+var renderedContent = md.render(renderMathInMarkdown(markdownText));
+
+        // 更新消息内容
+        messageToUpdate.find('.message-content').html(renderedContent);
+    }
+});
 
     socket.on('onlineUsers', function(users) {
       $('#users-mobile').empty();
@@ -154,26 +324,79 @@
     });
 
     $('#send').click(function() {
-      var model = $('#modelSelection').val();
-      
-      socket.emit('sendMessage', { 
-        'message': $('#input').val(),
-        'model': model                   //New line, pass the selected model with the message.
-      });
-      
-      $('#input').val('@ChatGPT ');
+  var message = $('#input').val();
+  var model = $('#modelSelection').val();
+  var isChatGPTChecked = $('#chatgpt-checkbox').is(':checked');
+
+  // 如果勾选了@ChatGPT，则在消息前添加后缀
+  if (isChatGPTChecked) {
+    message = message + '<br>@ChatGPT';
+  }
+  
+  socket.emit('sendMessage', { 
+    'message': message,
+    'model': model
+  });
+  
+  $('#input').val('');
+});
+    
+    // 使用事件委托来绑定点击事件
+$('body').on('click', '#edit-username', function() {
+  var newUsername = prompt('Enter your new username:');
+  if (newUsername) {
+    // 检查新用户名是否符合要求
+    var re = /^[\w\u4e00-\u9fa5]{1,20}$/;
+    if (!re.test(newUsername) || ['admin', 'chatgpt'].includes(newUsername.toLowerCase())) {
+      alert('Username is invalid. It should only contain English letters, numbers, Chinese characters, should not exceed 20 characters, and should not be reserved words.');
+      return;
+    }
+    socket.emit('changeUsername', newUsername);
+    // 更新本地变量和localStorage
+    socket.username = newUsername;
+    localStorage.setItem('username', newUsername);
+    // 更新用户名显示和保留笔图标
+    $('#username-display').html('Your username: ' + newUsername + ' <i class="fas fa-pencil-alt" id="edit-username"></i>');
+  }
+});
+
+    // 当收到'username'事件时，更新本地变量和localStorage
+    socket.on('username', function(newUsername) {
+      socket.username = newUsername;
+      localStorage.setItem('username', newUsername);
     });
+    
+socket.on('usernameChanged', function(data) {
+  if (socket.username === data.oldUsername) {
+    socket.username = data.newUsername;
+    $('#username-display').text('Your username: ' + socket.username);
+  }
+});
+$('#clear-history-icon').click(function() {
+  socket.emit('clearHistory');
+  $('#messages').empty();  // 清空前端的聊天记录
+});
+// 当窗口大小改变时，执行checkWidth函数
+window.onresize = checkWidth;
 
-</script>
+function checkWidth() {
+    // 获取窗口宽度
+    var windowWidth = window.innerWidth;
 
-<!-- Including Bootstrap scripts -->
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
-integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
-crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
-integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
-crossorigin="anonymous"></script>
+    // 获取在线用户列表的元素
+    var onlineUsersMobile = document.getElementById('users-mobile');
 
+    // 如果窗口宽度大于或等于768px，隐藏下方的在线用户列表
+    if (windowWidth >= 768) {
+        onlineUsersMobile.style.display = 'none';
+    } else {
+        onlineUsersMobile.style.display = 'block';
+    }
+}
+
+// 在页面加载时执行一次checkWidth函数，以确保初始状态正确
+checkWidth();
+});
+  </script>
 </body>
 </html>
-
