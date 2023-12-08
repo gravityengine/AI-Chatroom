@@ -17,7 +17,7 @@ app.config['SESSION_TYPE'] = 'filesystem'
 socketio = SocketIO(app, cors_allowed_origins="*")
 client = OpenAI(
     base_url="https://oneapi.gravityengine.cc/v1",
-    api_key="sk-xx"
+    api_key="sk-"
 )
 
 
@@ -103,7 +103,7 @@ def clear_history():
 @socketio.on('changeUsername')
 def change_username(new_username):
     # 检查新用户名是否符合要求
-    if not re.match(r'^[\w\u4e00-\u9fa5]{1,20}$', new_username) or new_username.lower() in ['admin', 'chatgpt']:
+    if not re.match(r'^[a-zA-Z\u4e00-\u9fa5]{1,20}$', new_username) or new_username.lower() in ['admin', 'chatgpt', 'undefined', 'administrator']:
         emit('message', {'user': 'admin', 'text': 'Username is invalid. It should only contain English letters, numbers, Chinese characters, should not exceed 20 characters, and should not be reserved words.'}, room=request.sid)
         return
 
